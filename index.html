@@ -49,7 +49,7 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             border: 1px solid rgba(99, 102, 241, 0.2);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
@@ -177,10 +177,112 @@
             animation: shake 0.5s ease;
         }
 
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Waiting Approval Screen */
+        .waiting-screen {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .waiting-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .waiting-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 50px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .waiting-card h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: var(--warning);
+        }
+
+        .waiting-card p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .waiting-info {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .waiting-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        .waiting-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .waiting-info-item span:first-child {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .waiting-info-item span:last-child {
+            font-weight: 600;
+            font-size: 14px;
         }
 
         /* Dashboard */
@@ -648,11 +750,37 @@
         .toast.error {
             background: var(--danger);
         }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Toggle entre Login e Registo */
+        .auth-toggle {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .auth-toggle a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
-<base target="_blank">
 </head>
 <body>
-    <!-- Login Screen -->
+    <!-- Login/Register Screen -->
     <div class="login-screen" id="loginScreen">
         <div class="login-card">
             <div class="logo">
@@ -662,16 +790,18 @@
             </div>
 
             <div class="error-message" id="loginError"></div>
+            <div class="success-message" id="loginSuccess"></div>
 
+            <!-- Formulário de Login -->
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="phone">Número de Telefone</label>
-                    <input type="tel" id="phone" placeholder="Ex: 860407269" required>
+                    <label for="loginPhone">Número de Telefone</label>
+                    <input type="tel" id="loginPhone" placeholder="Ex: 860407269" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="pin">PIN (4 dígitos)</label>
-                    <input type="password" id="pin" placeholder="****" maxlength="4" required>
+                    <label for="loginPin">PIN (4 dígitos)</label>
+                    <input type="password" id="loginPin" placeholder="****" maxlength="4" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="loginBtn">
@@ -679,9 +809,68 @@
                 </button>
             </form>
 
-            <p style="text-align: center; margin-top: 24px; font-size: 14px; color: var(--gray);">
-                Não tem conta? <a href="#" style="color: var(--primary); text-decoration: none;">Contacte o suporte</a>
-            </p>
+            <!-- Formulário de Registo (inicialmente escondido) -->
+            <form id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="regName">Nome Completo</label>
+                    <input type="text" id="regName" placeholder="Ex: Manuel Raul" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPhone">Número de Telefone</label>
+                    <input type="tel" id="regPhone" placeholder="Ex: 860407269" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPin">Criar PIN (4 dígitos)</label>
+                    <input type="password" id="regPin" placeholder="****" maxlength="4" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPinConfirm">Confirmar PIN</label>
+                    <input type="password" id="regPinConfirm" placeholder="****" maxlength="4" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="registerBtn">
+                    <span>Criar Conta</span>
+                </button>
+            </form>
+
+            <div class="auth-toggle" id="authToggle">
+                Não tem conta? <a onclick="toggleAuthMode()">Registar-se</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Approval Screen -->
+    <div class="waiting-screen" id="waitingScreen">
+        <div class="waiting-card">
+            <div class="waiting-icon">⏳</div>
+            <h2>Aguardando Aprovação</h2>
+            <p>A sua conta foi criada com sucesso e está pendente de aprovação pelo administrador. Assim que for aprovada, poderá aceder às aulas.</p>
+            
+            <div class="waiting-info">
+                <div class="waiting-info-item">
+                    <span>Nome:</span>
+                    <span id="waitName">-</span>
+                </div>
+                <div class="waiting-info-item">
+                    <span>Telefone:</span>
+                    <span id="waitPhone">-</span>
+                </div>
+                <div class="waiting-info-item">
+                    <span>Data de registo:</span>
+                    <span id="waitDate">-</span>
+                </div>
+                <div class="waiting-info-item">
+                    <span>Status:</span>
+                    <span style="color: var(--warning);">Pendente</span>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="backToLogin()">
+                ← Voltar ao Login
+            </button>
         </div>
     </div>
 
@@ -728,7 +917,7 @@
                 <div class="locked-message" id="lockedMessage">
                     <div class="locked-icon">🔒</div>
                     <h3>Conteúdo Bloqueado</h3>
-                    <p>Para aceder às lições, é necessário efetuar o pagamento de 500 MTN. O valor será debitado do seu saldo disponível.</p>
+                    <p>Para aceder às lições, é necessário efectuar o pagamento de 500 MTN. O valor será debitado do seu saldo disponível.</p>
                     <button class="btn btn-success" style="margin-top: 24px; max-width: 300px;" onclick="showPaymentModal()">
                         💳 Efectuar Pagamento
                     </button>
@@ -792,10 +981,10 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // GitHub Pages base URL - NOME CORRETO DO REPOSITÓRIO
+        // GitHub Pages base URL
         const GITHUB_BASE_URL = 'https://fatahanacletobebane-ui.github.io/Madrassa-online-I.M-';
 
-        // Lessons data - cada pasta deve conter um index.html
+        // Lessons data
         const lessons = [
             { id: 1, folder: 'prog_licao1_introducao', title: 'Introdução à Programação', desc: 'Conceitos básicos e ambiente de desenvolvimento' },
             { id: 2, folder: 'prog_licao2_entrada_saida_dados', title: 'Entrada e Saída de Dados', desc: 'Input, output e interação com utilizador' },
@@ -814,58 +1003,97 @@
         let userData = null;
         let currentLesson = 0;
         let hasPaid = false;
+        let isRegisterMode = false;
 
         // DOM Elements
         const loginScreen = document.getElementById('loginScreen');
+        const waitingScreen = document.getElementById('waitingScreen');
         const dashboard = document.getElementById('dashboard');
         const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
         const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
         const loginError = document.getElementById('loginError');
+        const loginSuccess = document.getElementById('loginSuccess');
+        const authToggle = document.getElementById('authToggle');
         const lessonsList = document.getElementById('lessonsList');
         const lessonFrame = document.getElementById('lessonFrame');
         const lockedMessage = document.getElementById('lockedMessage');
         const paymentModal = document.getElementById('paymentModal');
         const toast = document.getElementById('toast');
 
-        // Login handler
+        // Toggle entre Login e Registo
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            
+            if (isRegisterMode) {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                authToggle.innerHTML = 'Já tem conta? <a onclick="toggleAuthMode()">Entrar</a>';
+                loginError.classList.remove('show');
+                loginSuccess.classList.remove('show');
+            } else {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                authToggle.innerHTML = 'Não tem conta? <a onclick="toggleAuthMode()">Registar-se</a>';
+                loginError.classList.remove('show');
+                loginSuccess.classList.remove('show');
+            }
+        }
+
+        // Voltar ao login da tela de espera
+        function backToLogin() {
+            waitingScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            loginForm.reset();
+            registerForm.reset();
+            loginError.classList.remove('show');
+            loginSuccess.classList.remove('show');
+        }
+
+        // Handler de Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const phone = document.getElementById('phone').value.trim();
-            const pin = document.getElementById('pin').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            const pin = document.getElementById('loginPin').value.trim();
 
             // Show loading
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<div class="spinner"></div>';
             loginError.classList.remove('show');
+            loginSuccess.classList.remove('show');
 
             try {
-                // Check if user exists
-                const userRef = database.ref('users/' + phone);
+                // Verificar se o utilizador existe no nó "usuarios"
+                const userRef = database.ref('usuarios/' + phone);
                 const snapshot = await userRef.once('value');
 
                 if (!snapshot.exists()) {
-                    throw new Error('Número não registado. Contacte o suporte.');
+                    // Número não existe - sugerir registo automático
+                    throw new Error('Número não registado. Clique em "Registar-se" para criar conta.');
                 }
 
                 userData = snapshot.val();
 
-                // Verify PIN
+                // Verificar PIN
                 if (userData.pin !== pin) {
                     throw new Error('PIN incorrecto. Tente novamente.');
                 }
 
-                // Check if approved
-                if (!userData.approved) {
-                    throw new Error('Conta pendente de aprovação pelo administrador.');
+                // Verificar status de aprovação
+                if (userData.status !== 'aprovado') {
+                    // Mostrar tela de espera
+                    showWaitingScreen(phone, userData);
+                    return;
                 }
 
                 currentUser = phone;
 
-                // Check payment status
+                // Verificar pagamento do curso
                 await checkPaymentStatus();
 
-                // Show dashboard
+                // Mostrar dashboard
                 showDashboard();
 
             } catch (error) {
@@ -875,6 +1103,85 @@
                 loginBtn.innerHTML = '<span>Entrar</span>';
             }
         });
+
+        // Handler de Registo
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pin = document.getElementById('regPin').value.trim();
+            const pinConfirm = document.getElementById('regPinConfirm').value.trim();
+
+            // Show loading
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<div class="spinner"></div>';
+            loginError.classList.remove('show');
+            loginSuccess.classList.remove('show');
+
+            try {
+                // Validações
+                if (pin !== pinConfirm) {
+                    throw new Error('Os PINs não coincidem. Tente novamente.');
+                }
+
+                if (pin.length !== 4) {
+                    throw new Error('O PIN deve ter exactamente 4 dígitos.');
+                }
+
+                // Verificar se o número já existe
+                const userRef = database.ref('usuarios/' + phone);
+                const snapshot = await userRef.once('value');
+
+                if (snapshot.exists()) {
+                    throw new Error('Este número já está registado. Faça login.');
+                }
+
+                // Criar novo utilizador com status "pendente"
+                const now = new Date().toISOString();
+                const newUser = {
+                    nome: name,
+                    pin: pin,
+                    data: now,
+                    nivel: 1,
+                    status: 'pendente',
+                    balance: 0,
+                    sellerBalance: 0
+                };
+
+                await userRef.set(newUser);
+
+                // Mostrar mensagem de sucesso e tela de espera
+                loginSuccess.textContent = 'Conta criada com sucesso! Aguardando aprovação do administrador.';
+                loginSuccess.classList.add('show');
+
+                setTimeout(() => {
+                    showWaitingScreen(phone, newUser);
+                }, 1500);
+
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginError.classList.add('show');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<span>Criar Conta</span>';
+            }
+        });
+
+        // Mostrar tela de espera de aprovação
+        function showWaitingScreen(phone, data) {
+            loginScreen.style.display = 'none';
+            waitingScreen.style.display = 'flex';
+            
+            document.getElementById('waitName').textContent = data.nome || 'Utilizador';
+            document.getElementById('waitPhone').textContent = '+258 ' + phone;
+            document.getElementById('waitDate').textContent = new Date(data.data).toLocaleDateString('pt-MZ');
+            
+            // Reset botões
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<span>Entrar</span>';
+            registerBtn.disabled = false;
+            registerBtn.innerHTML = '<span>Criar Conta</span>';
+        }
 
         // Check payment status
         async function checkPaymentStatus() {
@@ -909,12 +1216,13 @@
         // Show dashboard
         function showDashboard() {
             loginScreen.style.display = 'none';
+            waitingScreen.style.display = 'none';
             dashboard.style.display = 'block';
 
             // Update user info
-            document.getElementById('userName').textContent = userData.name || 'Utilizador';
+            document.getElementById('userName').textContent = userData.nome || 'Utilizador';
             document.getElementById('userPhone').textContent = '+258 ' + currentUser;
-            document.getElementById('userAvatar').textContent = (userData.name || 'U').charAt(0).toUpperCase();
+            document.getElementById('userAvatar').textContent = (userData.nome || 'U').charAt(0).toUpperCase();
             document.getElementById('userBalance').textContent = (userData.balance || 0) + ' MTN';
             document.getElementById('modalBalance').textContent = (userData.balance || 0) + ' MTN';
 
@@ -986,10 +1294,10 @@
             lockedMessage.classList.remove('show');
             lessonFrame.style.display = 'block';
 
-            // Load content from GitHub Pages - COM /index.html NO FINAL
+            // Load content from GitHub Pages
             const lessonUrl = `${GITHUB_BASE_URL}/${lesson.folder}/index.html`;
 
-            console.log('Carregando lição:', lessonUrl); // Para debug
+            console.log('Carregando lição:', lessonUrl);
             lessonFrame.src = lessonUrl;
         }
 
@@ -1027,7 +1335,7 @@
                 const transactionId = 'TX' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
                 // Deduct balance
-                await database.ref('users/' + currentUser + '/balance').set(balance - 500);
+                await database.ref('usuarios/' + currentUser + '/balance').set(balance - 500);
 
                 // Create payment record
                 await database.ref('payments/' + currentUser).set({
@@ -1093,6 +1401,12 @@
             loginScreen.style.display = 'flex';
             dashboard.style.display = 'none';
             loginForm.reset();
+            registerForm.reset();
+            
+            // Voltar ao modo login
+            if (isRegisterMode) {
+                toggleAuthMode();
+            }
 
             // Clear iframe
             lessonFrame.src = '';
@@ -1110,9 +1424,11 @@
             }
         });
 
-        // Check for existing session
-        window.addEventListener('load', () => {
-            // Optional: Implement session persistence with localStorage
+        // Close waiting screen on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hidePaymentModal();
+            }
         });
     </script>
 </body>
